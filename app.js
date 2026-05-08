@@ -46,9 +46,9 @@ const verifyCaptcha = async (token) => {
 
 /* ---------------- EMAIL TRANSPORTER ---------------- */
 const transporter = nodemailer.createTransport({
-  host: process.env.HAK,
-  port: 465,
-  secure: true,
+  host: "smtp.office365.com",
+  port: 587,
+  secure: false,
   auth: {
     user: process.env.EM_USER,
     pass: process.env.EM_PASS,
@@ -57,7 +57,6 @@ const transporter = nodemailer.createTransport({
     rejectUnauthorized: false,
   },
 });
-
 // Verify transporter connection on startup
 transporter.verify((error, success) => {
   if (error) {
@@ -123,7 +122,7 @@ app.post("/sendEmail", async (req, res) => {
     /* ---- SEND TO BUSINESS (James McCanna) ---- */
     await transporter.sendMail({
       from: `"McCanna Mediation Website" <${process.env.EM_USER || "jmccanna@mcannamediation.com"}>`,
-      to: emUser,
+      to:  process.env.EM_USER,
       subject: emailSubject,
       text: emailBody,
       replyTo: emUser || process.env.EM_USER,
