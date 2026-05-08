@@ -123,7 +123,7 @@ app.post("/sendEmail", async (req, res) => {
     /* ---- SEND TO BUSINESS (James McCanna) ---- */
     await transporter.sendMail({
       from: `"McCanna Mediation Website" <${process.env.EM_USER || "jmccanna@mcannamediation.com"}>`,
-      to: process.env.EM_USER || "jmccanna@mcannamediation.com",
+      to: emUser,
       subject: emailSubject,
       text: emailBody,
       replyTo: emUser || process.env.EM_USER,
