@@ -7,10 +7,9 @@ const axios = require("axios");
 const app = express();
 
 app.use(cors({
-  origin: ["https://mccannamediation.com", "http://localhost:3000"]
+  origin: ["https://mccannamediation.com", "http://localhost:3000", "https://mccannamediationbackend.onrender.com"]
 }));
 app.use(express.json());
-
 
 /* ---------------- CAPTCHA VERIFY ---------------- */
 const verifyCaptcha = async (token) => {
@@ -34,25 +33,28 @@ const verifyCaptcha = async (token) => {
 };
 
 /* ---------------- EMAIL TRANSPORTER ---------------- */
+// Using Titan Email (Hostinger) - Same as your dreweb setup
 const transporter = nodemailer.createTransport({
-  host: process.env.HAK,
+  host: "smtp.titan.email",  // Changed from outlook to titan
   port: 465,
   secure: true,
   auth: {
-    user: process.env.EM_USER,
+    user: "jmccanna@mcannamediation.com",
     pass: process.env.EM_PASS,
   },
   tls: {
-    servername: process.env.HAK,
+    rejectUnauthorized: false,
   },
 });
 
 /* ---------------- ROUTE ---------------- */
 app.post("/sendEmail", async (req, res) => {
-  const { emUser, nameUser, subject, body, captcha } = req.body;
+  const { emUser, nameUser, subject, body, captcha, party1, party2, conflictType } = req.body;
+
+  console.log("Received request:", { emUser, nameUser, party1, party2, conflictType });
 
   /* ---- BASIC VALIDATION ---- */
-  if (!emUser || !nameUser || !body) {
+  if (!body) {
     return res.status(400).json({
       message: "Missing required fields",
     });
@@ -68,40 +70,41 @@ app.post("/sendEmail", async (req, res) => {
   }
 
   try {
-    /* ---- SEND TO BUSINESS ---- */
+    /* ---- SEND TO BUSINESS (James) ---- */
     await transporter.sendMail({
-      from: `"Website Contact" <${process.env.EM_USER}>`,
-      to: process.env.EM_USER,
-      subject: subject,
-      text: `${body}\n\nSender: ${emUser}`,
-      replyTo: emUser,
+      from: `"McCanna Mediation Website" <jmccanna@mcannamediation.com>`,
+      to: "jmccanna@mcannamediation.com",
+      subject: subject || "New Consultation Request",
+      text: body,
+      replyTo: emUser || "jmccanna@mcannamediation.com",
     });
 
     console.log("✅ Email sent to business");
 
-    /* ---- AUTO REPLY ---- */
-    await transporter.sendMail({
-      from: `"McCanna Mediation" <${process.env.EM_USER}>`,
-      to: emUser,
-      subject: "We received your message",
-      text: `Hi ${nameUser},
+    /* ---- AUTO REPLY (only if client email provided) ---- */
+    if (emUser && emUser !== "jmccanna@mcannamediation.com") {
+      await transporter.sendMail({
+        from: `"James McCanna" <jmccanna@mcannamediation.com>`,
+        to: emUser,
+        subject: "We received your consultation request",
+        text: `Dear ${nameUser || "Client"},
 
-Thanks for getting in touch with McCanna Mediation!
+Thank you for reaching out to McCanna Mediation.
 
-I’ve received your message and will review the details soon. I typically respond within 24 hours, but I’ll do my best to get back to you sooner.
+I have received your consultation request regarding ${conflictType || "your matter"} and will review the details soon.
 
-In the meantime, if you have any additional info you'd like to share, feel free to reply here.
+I typically respond within 24 hours. If you need immediate assistance, please feel free to call.
 
-Talk soon,
+Best regards,
 
-James McCanna  
+James McCanna
 McCanna Mediation`,
-    });
-
-    console.log("✅ Auto-reply sent");
+      });
+      console.log("✅ Auto-reply sent");
+    }
 
     return res.status(200).json({
-      message: "Message sent successfully. We'll reply shortly.",
+      message: "Consultation request sent successfully. James will contact you within 24 hours.",
     });
 
   } catch (error) {
@@ -115,7 +118,7 @@ McCanna Mediation`,
 
 /* ---------------- SERVER ---------------- */
 app.get("/", (req, res) => {
-  res.send("macanna mediation backend running");
+  res.send("McCanna Mediation backend running");
 });
 
 const PORT = process.env.PORT || 3111;
