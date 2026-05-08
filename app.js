@@ -12,8 +12,8 @@ app.use(cors({
     "https://mccannamediation.com", 
     "http://localhost:3000", 
     "https://mccannamediationbackend.onrender.com",
-    "https://mccanna-mediation.vercel.app",
-    "http://localhost:5173"
+    "https://mccanna-mediation.vercel.app", // Add your Vercel frontend URL
+    "http://localhost:5173" // For React dev server if using Vite
   ],
   credentials: true
 }));
@@ -33,7 +33,7 @@ const verifyCaptcha = async (token) => {
           secret: process.env.RECAPTCHA_SECRET,
           response: token,
         },
-        timeout: 10000
+        timeout: 10000 // 10 second timeout
       }
     );
 
@@ -45,26 +45,23 @@ const verifyCaptcha = async (token) => {
 };
 
 /* ---------------- EMAIL TRANSPORTER ---------------- */
-// Using Office 365 SMTP settings
 const transporter = nodemailer.createTransport({
-  host: "smtp.office365.com",
-  port: 587,
-  secure: false, // false for port 587 - STARTTLS
+  host: process.env.HAK,
+  port: 465,
+  secure: true,
   auth: {
-    user: process.env.EM_USER || "jmccanna@mccannalaw.com",
+    user: process.env.EM_USER,
     pass: process.env.EM_PASS,
   },
   tls: {
-    ciphers: 'SSLv3',
-    rejectUnauthorized: false
+    rejectUnauthorized: false,
   },
-  authMethod: 'LOGIN'
 });
 
 // Verify transporter connection on startup
 transporter.verify((error, success) => {
   if (error) {
-    console.error("❌ Email transporter error:", error.message);
+    console.error("❌ Email transporter error:", error);
   } else {
     console.log("✅ Email transporter ready to send messages");
   }
@@ -73,14 +70,14 @@ transporter.verify((error, success) => {
 /* ---------------- ROUTE ---------------- */
 app.post("/sendEmail", async (req, res) => {
   const { 
-    emUser,
-    nameUser,
-    subject,
-    body,
-    captcha,
-    party1,
-    party2,
-    conflictType
+    emUser,      // Client's email address
+    nameUser,    // Client name or party names
+    subject,     // Email subject
+    body,        // Email body content
+    captcha,     // reCAPTCHA token
+    party1,      // Optional: Party 1 name
+    party2,      // Optional: Party 2 name
+    conflictType // Optional: Type of conflict
   } = req.body;
 
   console.log("📧 Received request:", { 
@@ -119,19 +116,20 @@ app.post("/sendEmail", async (req, res) => {
   }
 
   try {
+    // Prepare email content
     const emailSubject = subject || "New Consultation Request - McCanna Mediation";
     const emailBody = body;
 
     /* ---- SEND TO BUSINESS (James McCanna) ---- */
     await transporter.sendMail({
-      from: `"McCanna Mediation" <${process.env.EM_USER || "jmccanna@mccannalaw.com"}>`,
-      to: process.env.EM_USER || "jmccanna@mccannalaw.com", // Send to James
+      from: `"McCanna Mediation Website" <${process.env.EM_USER || "jmccanna@mcannamediation.com"}>`,
+      to: emUser,
       subject: emailSubject,
       text: emailBody,
-      replyTo: emUser, // So James can reply directly to client
+      replyTo: emUser || process.env.EM_USER,
     });
 
-    console.log("✅ Consultation request sent to James McCanna");
+    console.log("✅ Email sent to James McCanna");
 
     /* ---- AUTO REPLY TO CLIENT (if email provided) ---- */
     if (emUser && emUser !== process.env.EM_USER && emUser.includes('@')) {
@@ -149,10 +147,11 @@ Best regards,
 
 James McCanna
 McCanna Mediation
+Phone: [Your Phone Number]
 Website: https://mccannamediation.com`;
 
       await transporter.sendMail({
-        from: `"James McCanna" <${process.env.EM_USER || "jmccanna@mccannalaw.com"}>`,
+        from: `"James McCanna" <${process.env.EM_USER || "jmccanna@mcannamediation.com"}>`,
         to: emUser,
         subject: "We received your consultation request - McCanna Mediation",
         text: autoReplyText,
@@ -168,8 +167,15 @@ Website: https://mccannamediation.com`;
     });
 
   } catch (error) {
-    console.error("❌ Email error:", error.message);
+    console.error("❌ Email error:", error);
     
+    // Detailed error logging
+    if (error.response) {
+      console.error("Response error:", error.response);
+    } else if (error.code) {
+      console.error("Error code:", error.code);
+    }
+
     return res.status(500).json({
       success: false,
       message: "Failed to send consultation request. Please try again later or call directly.",
@@ -199,5 +205,5 @@ app.get("/health", (req, res) => {
 const PORT = process.env.PORT || 3111;
 app.listen(PORT, () => {
   console.log(`🚀 McCanna Mediation backend running on port ${PORT}`);
-  console.log(`📧 Email configured with: ${process.env.EM_USER || "jmccanna@mccannalaw.com"}`);
+  console.log(`📧 Email configured with: ${process.env.EM_USER || "jmccanna@mcannamediation.com"}`);
 });
