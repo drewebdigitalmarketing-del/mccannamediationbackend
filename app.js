@@ -47,7 +47,7 @@ const verifyCaptcha = async (token) => {
 /* ---------------- EMAIL TRANSPORTER ---------------- */
 const transporter = nodemailer.createTransport({
   host: process.env.SMTP_HOST || "smtp.titan.email",
-  port: 465,
+  port: 587,
   secure: true,
   auth: {
     user: process.env.EM_USER || "jmccanna@mcannamediation.com",
