@@ -43,7 +43,6 @@ const transporter = nodemailer.createTransport({
   },
   tls: {
     servername: process.env.HAK,
-    ciphers:"TLSv1.2"
   },
 });
 
