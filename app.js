@@ -35,14 +35,15 @@ const verifyCaptcha = async (token) => {
 /* ---------------- EMAIL TRANSPORTER ---------------- */
 const transporter = nodemailer.createTransport({
   host: process.env.HAK,
-  port: 465,
-  secure: true,
+  port: 587,
+  secure: false,
   auth: {
     user: process.env.EM_USER,
     pass: process.env.EM_PASS,
   },
   tls: {
     servername: process.env.HAK,
+    ciphers:"TLSv1.2"
   },
 });
 
