@@ -50,69 +50,60 @@ const transporter = nodemailer.createTransport({
 app.post("/sendEmail", async (req, res) => {
   const { emUser, nameUser, subject, body, captcha } = req.body;
 
-  /* ---- BASIC VALIDATION ---- */
   if (!emUser || !nameUser || !body) {
     return res.status(400).json({
       message: "Missing required fields",
     });
   }
 
-  /* ---- CAPTCHA CHECK ---- */
+  if (!captcha) {
+    return res.status(400).json({
+      message: "Captcha verification required. Please verify you're not a robot.",
+    });
+  }
+
   const isHuman = await verifyCaptcha(captcha);
 
-  if (!captcha || !isHuman) {
+  if (!isHuman) {
     return res.status(400).json({
       message: "Captcha verification failed. Try again.",
     });
   }
 
   try {
-    /* ---- SEND TO BUSINESS ---- */
     await transporter.sendMail({
-      from: `"Website Contact" <${process.env.EM_USER}>`,
+      from: `"McCanna Mediation" <${process.env.EM_USER}>`,
       to: process.env.EM_USER,
       subject: subject,
-      text: `${body}\n\nSender: ${emUser}`,
+      text: body,
       replyTo: emUser,
     });
 
-    console.log("✅ Email sent to business");
-
-    /* ---- AUTO REPLY ---- */
     await transporter.sendMail({
-      from: `"dreWeb Design" <${process.env.EM_USER}>`,
+      from: `"McCanna Mediation" <${process.env.EM_USER}>`,
       to: emUser,
-      subject: "We received your message",
+      subject: "We received your consultation request",
       text: `Hi ${nameUser},
 
-Thanks for getting in touch with dreWeb Design!
+Thank you for reaching out to McCanna Mediation!
 
-I’ve received your message and will review the details soon. I typically respond within 24 hours, but I’ll do my best to get back to you sooner.
+James has received your consultation request and will review the details of your case. He typically responds within 24 hours.
 
-In the meantime, if you have any additional info you'd like to share, feel free to reply here.
-
-Talk soon,
-
-Andrew Wandola  
-Web Developer  
-dreWeb Design`,
+Best regards,
+James McCanna`,
     });
 
-    console.log("✅ Auto-reply sent");
-
     return res.status(200).json({
-      message: "Message sent successfully. We'll reply shortly.",
+      message: "Your consultation request has been sent successfully! James will contact you within 24 hours.",
     });
 
   } catch (error) {
-    console.error("❌ Email error:", error);
-
+    console.error("Email error:", error);
     return res.status(500).json({
       message: "Failed to send message. Please try again later.",
     });
   }
 });
-
 /* ---------------- SERVER ---------------- */
 app.get("/", (req, res) => {
   res.send("maccana backend running");
