@@ -7,7 +7,7 @@ const axios = require("axios");
 const app = express();
 
 app.use(cors({
-  origin: ["https://mccannamediation.com", "http://localhost:3000"]
+  origin: ["https://mccannalaw.com", "http://localhost:3000"]
 }));
 app.use(express.json());
 
