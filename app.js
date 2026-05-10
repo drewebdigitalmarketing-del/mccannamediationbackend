@@ -72,13 +72,7 @@ app.post("/sendEmail", async (req, res) => {
   }
 
   try {
-    await transporter.sendMail({
-      from: `"McCanna Mediation" <${process.env.EM_USER}>`,
-      to: process.env.EM_USER,
-      subject: subject,
-      text: body,
-      replyTo: emUser,
-    });
+  
 
     await transporter.sendMail({
       from: `"McCanna Mediation" <${process.env.EM_USER}>`,
