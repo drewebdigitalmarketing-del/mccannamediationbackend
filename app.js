@@ -83,7 +83,7 @@ app.post("/sendEmail", async (req, res) => {
     await transporter.sendMail({
       from: `"McCanna Mediation" <${process.env.EM_USER}>`,
       to: emUser,
-      subject: "We received your consultation request",
+      subject: "We received your message request",
       text: `Hi ${nameUser},
 
 Thank you for reaching out to McCanna Mediation!
