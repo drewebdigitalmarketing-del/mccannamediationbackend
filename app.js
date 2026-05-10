@@ -84,11 +84,11 @@ app.post("/sendEmail", async (req, res) => {
       from: `"McCanna Mediation" <${process.env.EM_USER}>`,
       to: emUser,
       subject: "We received your consultation request",
-      text: `Hi ${nameUser},
+      text: `Hello!
 
-Thank you for reaching out to McCanna Mediation!
+Thank you for conctacting McCanna Mediation!
 
-James has received your consultation request and will review the details of your case. He typically responds within 24 hours.
+I will review the details of your case and contact you as soon as possible.
 
 Best regards,
 James McCanna`,
