@@ -79,6 +79,13 @@ app.get("/", (req, res) => {
   res.send("maccana backend running");
 });
 
+app.post("/hello", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Backend is awake",
+  });
+});
+
 const PORT = process.env.PORT || 3111;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
