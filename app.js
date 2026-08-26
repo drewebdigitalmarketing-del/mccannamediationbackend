@@ -11,26 +11,7 @@ app.use(cors({
 }));
 app.use(express.json());
 
-/* ---------------- CAPTCHA VERIFY ---------------- */
-const verifyCaptcha = async (token) => {
-  try {
-    const res = await axios.post(
-      "https://www.google.com/recaptcha/api/siteverify",
-      null,
-      {
-        params: {
-          secret: process.env.RECAPTCHA_SECRET,
-          response: token,
-        },
-      }
-    );
 
-    return res.data.success;
-  } catch (err) {
-    console.error("Captcha error:", err.message);
-    return false;
-  }
-};
 
 /* ---------------- EMAIL TRANSPORTER ---------------- */
 const transporter = nodemailer.createTransport({
@@ -57,19 +38,6 @@ app.post("/sendEmail", async (req, res) => {
     });
   }
 
-  if (!captcha) {
-    return res.status(400).json({
-      message: "Captcha verification required. Please verify you're not a robot.",
-    });
-  }
-
-  const isHuman = await verifyCaptcha(captcha);
-
-  if (!isHuman) {
-    return res.status(400).json({
-      message: "Captcha verification failed. Try again.",
-    });
-  }
 
   try {
     await transporter.sendMail({
